@@ -9,86 +9,87 @@ import {
   FaAngleRight,
   FaAngleDoubleLeft,
   FaAngleDoubleRight,
-
 } from "react-icons/fa";
 import api from "../api/axios";
 import { useTheme } from "../context/ThemeContext";
 
-// Beautiful Pagination for 10 items per page, adaptive to dark/light mode
-function Pagination({ page, setPage, totalPages, dark }) {
-  if (totalPages <= 1) return null;
+// PAGINATION ala Sales.jsx
+function FancyPagination({ page, setPage, totalPages, dark }) {
+  if (totalPages === 0) return null;
 
-  const getPageNumbers = () => {
-    let numbers = [];
+  // Algoritma halaman dinamis (similar ke Sales.jsx)
+  let pages = [];
+  if (totalPages <= 6) {
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  } else if (page <= 4) {
+    pages = [1, 2, 3, 4, 5, "...", totalPages];
+  } else if (page >= totalPages - 3) {
+    pages = [
+      1,
+      "...",
+      totalPages - 4,
+      totalPages - 3,
+      totalPages - 2,
+      totalPages - 1,
+      totalPages,
+    ];
+  } else {
+    pages = [
+      1,
+      "...",
+      page - 1,
+      page,
+      page + 1,
+      "...",
+      totalPages,
+    ];
+  }
 
-    if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) numbers.push(i);
-    } else {
-      if (page <= 4) {
-        numbers = [1, 2, 3, 4, 5, "...", totalPages];
-      } else if (page >= totalPages - 3) {
-        numbers = [
-          1,
-          "...",
-          totalPages - 4,
-          totalPages - 3,
-          totalPages - 2,
-          totalPages - 1,
-          totalPages,
-        ];
-      } else {
-        numbers = [
-          1,
-          "...",
-          page - 1,
-          page,
-          page + 1,
-          "...",
-          totalPages,
-        ];
-      }
-    }
-    return numbers;
-  };
-
-  const pageNumbers = getPageNumbers();
+  const btnClass = base =>
+    "transition border px-2 py-2 md:px-3 md:py-2 rounded-lg text-base font-semibold shadow " +
+    base +
+    (dark
+      ? " bg-[#101c2e] border-cyan-900 text-cyan-200 hover:bg-cyan-800/40"
+      : " bg-white border-blue-100 text-blue-800 hover:bg-sky-200/50");
 
   return (
-    <div className="flex items-center justify-center gap-2 md:gap-2 mt-6 pb-8 select-none">
+    <nav className="select-none mt-6 pb-8 flex items-center justify-center gap-1 md:gap-2">
       <button
-        onClick={() => setPage(1)}
+        aria-label="Halaman Pertama"
         disabled={page === 1}
         className={
-          "rounded-lg p-2 text-lg transition font-bold border shadow-sm focus:outline-none focus:ring-2 " +
-          (dark
-            ? "bg-slate-950 text-cyan-400 border-cyan-800 hover:bg-cyan-900/70"
-            : "bg-white text-cyan-700 border-sky-200 hover:bg-blue-100/80") +
-          (page === 1 ? " opacity-60 cursor-not-allowed" : "")
+          btnClass("") +
+          (page === 1
+            ? " cursor-not-allowed opacity-40"
+            : dark
+            ? " hover:text-cyan-300"
+            : " hover:text-blue-600")
         }
-        aria-label="Halaman Pertama"
+        onClick={() => setPage(1)}
       >
         <FaAngleDoubleLeft />
       </button>
       <button
-        onClick={() => setPage((p) => Math.max(1, p - 1))}
+        aria-label="Sebelumnya"
         disabled={page === 1}
         className={
-          "rounded-lg p-2 text-lg transition font-bold border shadow-sm focus:outline-none focus:ring-2 " +
-          (dark
-            ? "bg-slate-950 text-cyan-300 border-cyan-800 hover:bg-cyan-900/80"
-            : "bg-white text-blue-600 border-sky-200 hover:bg-blue-100/80") +
-          (page === 1 ? " opacity-60 cursor-not-allowed" : "")
+          btnClass("") +
+          (page === 1
+            ? " cursor-not-allowed opacity-40"
+            : dark
+            ? " hover:text-cyan-400"
+            : " hover:text-blue-600")
         }
-        aria-label="Sebelumnya"
+        onClick={() => setPage(page - 1)}
       >
         <FaAngleLeft />
       </button>
-      {pageNumbers.map((num, idx) =>
-        num === "..." ? (
+      {pages.map((p, i) =>
+        p === "..." ? (
           <span
-            key={idx + "-dots"}
+            key={`dots-${i}`}
             className={
-              "px-2 font-black text-lg md:text-xl tracking-wider " +
+              "mx-1.5 px-0.5 font-black text-lg md:text-xl tracking-wider " +
               (dark ? "text-cyan-300/40" : "text-blue-400/50")
             }
             style={{ userSelect: "none", pointerEvents: "none" }}
@@ -97,76 +98,61 @@ function Pagination({ page, setPage, totalPages, dark }) {
           </span>
         ) : (
           <button
-            key={num}
-            onClick={() => setPage(num)}
+            key={p}
+            aria-current={p === page ? "page" : undefined}
             className={
-              "rounded-lg min-w-[2.3rem] px-2 py-2 md:px-3 md:py-2 font-bold text-base md:text-lg border transition shadow focus:ring-2 " +
-              (page === num
-                ? dark
-                  ? "bg-cyan-700 text-white border-cyan-400/70 ring-cyan-400/30"
-                  : "bg-sky-100 text-blue-800 border-sky-400 ring-sky-400/30"
-                : dark
-                ? "bg-slate-900 text-cyan-100 border-cyan-800 hover:bg-cyan-800/50 hover:text-cyan-100"
-                : "bg-white text-sky-800 border-sky-100 hover:bg-blue-100 hover:text-blue-700")
-            }
-            style={{
-              boxShadow:
-                page === num
+              btnClass(
+                p === page
                   ? dark
-                    ? "0 1px 6px 0 #06b6d430"
-                    : "0 1px 7px 0 #7dd3fc55"
-                  : undefined,
-              outline: page === num ? "none" : undefined,
+                    ? " !bg-cyan-700 text-white border-cyan-600 ring-2 ring-cyan-400/15 shadow-lg scale-105 font-extrabold"
+                    : " !bg-sky-100 text-blue-900 border-sky-400 ring-2 ring-sky-400/15 shadow-lg scale-105 font-extrabold"
+                  : ""
+              )
+            }
+            onClick={() => setPage(p)}
+            disabled={p === page}
+            style={{
+              minWidth: "2.45rem",
+              outline: p === page ? "none" : undefined,
             }}
-            disabled={page === num}
-            aria-current={page === num ? "page" : undefined}
           >
-            {num}
+            {p}
           </button>
         )
       )}
       <button
-        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+        aria-label="Berikutnya"
         disabled={page === totalPages}
         className={
-          "rounded-lg p-2 text-lg transition font-bold border shadow-sm focus:outline-none focus:ring-2 " +
-          (dark
-            ? "bg-slate-950 text-cyan-300 border-cyan-800 hover:bg-cyan-900/90"
-            : "bg-white text-blue-600 border-sky-200 hover:bg-blue-100/80") +
-          (page === totalPages ? " opacity-60 cursor-not-allowed" : "")
+          btnClass("") +
+          (page === totalPages
+            ? " cursor-not-allowed opacity-40"
+            : dark
+            ? " hover:text-cyan-300"
+            : " hover:text-blue-600")
         }
-        aria-label="Berikutnya"
+        onClick={() => setPage(page + 1)}
       >
         <FaAngleRight />
       </button>
       <button
-        onClick={() => setPage(totalPages)}
+        aria-label="Halaman Terakhir"
         disabled={page === totalPages}
         className={
-          "rounded-lg p-2 text-lg transition font-bold border shadow-sm focus:outline-none focus:ring-2 " +
-          (dark
-            ? "bg-slate-950 text-cyan-400 border-cyan-800 hover:bg-cyan-900/70"
-            : "bg-white text-cyan-700 border-sky-200 hover:bg-blue-100/80") +
-          (page === totalPages ? " opacity-60 cursor-not-allowed" : "")
+          btnClass("") +
+          (page === totalPages
+            ? " cursor-not-allowed opacity-40"
+            : dark
+            ? " hover:text-cyan-400"
+            : " hover:text-blue-600")
         }
-        aria-label="Halaman Terakhir"
+        onClick={() => setPage(totalPages)}
       >
         <FaAngleDoubleRight />
       </button>
-      <style jsx="true">{`
-        .pagination-shadow-dark {
-          box-shadow: 0 2px 8px 0 rgba(6, 182, 212, 0.08);
-        }
-        .pagination-shadow-light {
-          box-shadow: 0 2px 8px 0 rgba(56, 189, 248, 0.08);
-        }
-      `}</style>
-    </div>
+    </nav>
   );
 }
-
-// -- komponen & logika lain tetap persis seperti sebelumnya --
-// Hanya mengganti komponen TablePagination jadi Pagination
 
 function ConfettiAnimation({ dark }) {
   const bags = Array.from({ length: 40 });
@@ -341,12 +327,14 @@ export default function Inventory() {
 
   // States
   const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
+  const [searchValue, setSearchValue] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showEditSuccess, setShowEditSuccess] = useState(false);
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
   const [showEditModal, setShowEditModal] = useState(false);
   const [editProductId, setEditProductId] = useState(null);
   const [editForm, setEditForm] = useState({
@@ -364,46 +352,33 @@ export default function Inventory() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
 
-  // Pagination states
-  const [page, setPage] = useState(1);
-  const itemsPerPage = 2;
-
   // Fetch Data
   const fetchInventory = async () => {
     try {
-      const response = await api.get("/inventory");
-      setProducts(response.data);
-      setFilteredProducts(response.data);
-    } catch (error) {
-      console.error(error);
+      const response = await api.get("/inventory", {
+        params: {
+          page,
+          limit: 10,
+          search,
+        },
+      });
+
+      setProducts(response.data.data);
+      setTotalPages(response.data.totalPages);
+    } catch (err) {
+      console.error(err);
     }
   };
 
   useEffect(() => {
     fetchInventory();
     // eslint-disable-next-line
-  }, []);
-
-  useEffect(() => {
-    const maxPage = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
-    if (page > maxPage) setPage(maxPage);
-  }, [filteredProducts, page, itemsPerPage]);
+  }, [page, search]);
 
   // Handler
   const handleSearch = (value) => {
     setSearchValue(value);
-    const query = value.toLowerCase();
-    const result = products.filter((item) => {
-      const fields = [
-        String(item.name ?? ""),
-        String(item.category ?? ""),
-        String(item.stock ?? ""),
-        String(item.price ?? ""),
-        String(getStatus(item.stock) ?? ""),
-      ];
-      return fields.some((field) => field.toLowerCase().includes(query));
-    });
-    setFilteredProducts(result);
+    setSearch(value);
     setPage(1);
   };
 
@@ -489,13 +464,6 @@ export default function Inventory() {
     if (stock <= 20) return "yellow";
     return "green";
   };
-
-  // Pagination logic untuk data yang sudah difilter
-  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
-  const pagedProducts = filteredProducts.slice(
-    (page - 1) * itemsPerPage,
-    page * itemsPerPage
-  );
 
   // RENDER ---------------------------------
   return (
@@ -687,7 +655,7 @@ export default function Inventory() {
               </tr>
             </thead>
             <tbody>
-              {pagedProducts.map((item, index) => (
+              {products.map((item, index) => (
                 <tr
                   key={item.id}
                   className={
@@ -703,7 +671,7 @@ export default function Inventory() {
                       (dark ? "text-cyan-300" : "text-sky-600")
                     }
                   >
-                    {(page - 1) * itemsPerPage + index + 1}
+                    {(page - 1) * 10 + index + 1}
                   </td>
                   <td
                     className={
@@ -794,7 +762,7 @@ export default function Inventory() {
                   </td>
                 </tr>
               ))}
-              {pagedProducts.length === 0 && (
+              {products.length === 0 && (
                 <tr>
                   <td
                     colSpan="7"
@@ -811,7 +779,7 @@ export default function Inventory() {
           </table>
         </div>
         {/* Pagination untuk tabel */}
-        <Pagination
+        <FancyPagination
           page={page}
           setPage={setPage}
           totalPages={totalPages}
@@ -1127,6 +1095,7 @@ export default function Inventory() {
       `}</style>
     </div>
   );
+
+
+
 }
-
-
