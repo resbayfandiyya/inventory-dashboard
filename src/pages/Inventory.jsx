@@ -7,43 +7,76 @@ import {
   FaCheckCircle,
   FaAngleLeft,
   FaAngleRight,
+  FaAngleDoubleLeft,
+  FaAngleDoubleRight,
+
 } from "react-icons/fa";
 import api from "../api/axios";
 import { useTheme } from "../context/ThemeContext";
 
-// Komponen Pagination Sederhana
+// Beautiful Pagination for 10 items per page, adaptive to dark/light mode
 function Pagination({ page, setPage, totalPages, dark }) {
   if (totalPages <= 1) return null;
-  const pageNumbers = [];
 
-  // Menampilkan halaman pertama, terakhir, saat ini, dan titik-titik jika perlu (logic sederhana)
-  for (let i = 1; i <= totalPages; i++) {
-    // Hanya tampilkan halaman pertama, terakhir, current, sebelah current, dan titik-titik
-    if (
-      i === 1 ||
-      i === totalPages ||
-      (i >= page - 1 && i <= page + 1 && i > 1 && i < totalPages)
-    ) {
-      pageNumbers.push(i);
-    } else if (
-      // Titik-titik hanya untuk halaman yang jauh di antara
-      (i === page - 2 && page - 2 > 1) ||
-      (i === page + 2 && page + 2 < totalPages)
-    ) {
-      pageNumbers.push("...");
+  const getPageNumbers = () => {
+    let numbers = [];
+
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) numbers.push(i);
+    } else {
+      if (page <= 4) {
+        numbers = [1, 2, 3, 4, 5, "...", totalPages];
+      } else if (page >= totalPages - 3) {
+        numbers = [
+          1,
+          "...",
+          totalPages - 4,
+          totalPages - 3,
+          totalPages - 2,
+          totalPages - 1,
+          totalPages,
+        ];
+      } else {
+        numbers = [
+          1,
+          "...",
+          page - 1,
+          page,
+          page + 1,
+          "...",
+          totalPages,
+        ];
+      }
     }
-  }
+    return numbers;
+  };
+
+  const pageNumbers = getPageNumbers();
 
   return (
-    <div className="flex items-center justify-center gap-1 mt-5 pb-7">
+    <div className="flex items-center justify-center gap-2 md:gap-2 mt-6 pb-8 select-none">
+      <button
+        onClick={() => setPage(1)}
+        disabled={page === 1}
+        className={
+          "rounded-lg p-2 text-lg transition font-bold border shadow-sm focus:outline-none focus:ring-2 " +
+          (dark
+            ? "bg-slate-950 text-cyan-400 border-cyan-800 hover:bg-cyan-900/70"
+            : "bg-white text-cyan-700 border-sky-200 hover:bg-blue-100/80") +
+          (page === 1 ? " opacity-60 cursor-not-allowed" : "")
+        }
+        aria-label="Halaman Pertama"
+      >
+        <FaAngleDoubleLeft />
+      </button>
       <button
         onClick={() => setPage((p) => Math.max(1, p - 1))}
         disabled={page === 1}
         className={
-          "px-2 py-2 rounded-lg font-bold text-xl flex items-center transition focus:ring-2 focus:ring-cyan-400/40 " +
+          "rounded-lg p-2 text-lg transition font-bold border shadow-sm focus:outline-none focus:ring-2 " +
           (dark
-            ? "bg-slate-900 text-slate-200 border border-slate-700 hover:bg-cyan-900"
-            : "bg-gray-100 text-blue-500 border border-sky-200 hover:bg-blue-100") +
+            ? "bg-slate-950 text-cyan-300 border-cyan-800 hover:bg-cyan-900/80"
+            : "bg-white text-blue-600 border-sky-200 hover:bg-blue-100/80") +
           (page === 1 ? " opacity-60 cursor-not-allowed" : "")
         }
         aria-label="Sebelumnya"
@@ -55,9 +88,10 @@ function Pagination({ page, setPage, totalPages, dark }) {
           <span
             key={idx + "-dots"}
             className={
-              "px-2 text-base font-semibold " +
-              (dark ? "text-cyan-300/60" : "text-blue-300/90")
+              "px-2 font-black text-lg md:text-xl tracking-wider " +
+              (dark ? "text-cyan-300/40" : "text-blue-400/50")
             }
+            style={{ userSelect: "none", pointerEvents: "none" }}
           >
             ...
           </span>
@@ -66,15 +100,24 @@ function Pagination({ page, setPage, totalPages, dark }) {
             key={num}
             onClick={() => setPage(num)}
             className={
-              "mx-1 px-3 py-2 rounded-lg font-semibold text-base border transition focus:ring-2 focus:ring-cyan-300/40 " +
+              "rounded-lg min-w-[2.3rem] px-2 py-2 md:px-3 md:py-2 font-bold text-base md:text-lg border transition shadow focus:ring-2 " +
               (page === num
                 ? dark
-                  ? "bg-cyan-700 text-white border-cyan-400"
-                  : "bg-blue-100 text-blue-800 border-sky-300"
+                  ? "bg-cyan-700 text-white border-cyan-400/70 ring-cyan-400/30"
+                  : "bg-sky-100 text-blue-800 border-sky-400 ring-sky-400/30"
                 : dark
-                ? "bg-slate-900 text-cyan-100 border-slate-700 hover:bg-cyan-800"
-                : "bg-white text-blue-800 border-sky-100 hover:bg-blue-100")
+                ? "bg-slate-900 text-cyan-100 border-cyan-800 hover:bg-cyan-800/50 hover:text-cyan-100"
+                : "bg-white text-sky-800 border-sky-100 hover:bg-blue-100 hover:text-blue-700")
             }
+            style={{
+              boxShadow:
+                page === num
+                  ? dark
+                    ? "0 1px 6px 0 #06b6d430"
+                    : "0 1px 7px 0 #7dd3fc55"
+                  : undefined,
+              outline: page === num ? "none" : undefined,
+            }}
             disabled={page === num}
             aria-current={page === num ? "page" : undefined}
           >
@@ -86,16 +129,38 @@ function Pagination({ page, setPage, totalPages, dark }) {
         onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
         disabled={page === totalPages}
         className={
-          "px-2 py-2 rounded-lg font-bold text-xl flex items-center transition focus:ring-2 focus:ring-cyan-400/40 " +
+          "rounded-lg p-2 text-lg transition font-bold border shadow-sm focus:outline-none focus:ring-2 " +
           (dark
-            ? "bg-slate-900 text-slate-200 border border-slate-700 hover:bg-cyan-900"
-            : "bg-gray-100 text-blue-500 border border-sky-200 hover:bg-blue-100") +
+            ? "bg-slate-950 text-cyan-300 border-cyan-800 hover:bg-cyan-900/90"
+            : "bg-white text-blue-600 border-sky-200 hover:bg-blue-100/80") +
           (page === totalPages ? " opacity-60 cursor-not-allowed" : "")
         }
         aria-label="Berikutnya"
       >
         <FaAngleRight />
       </button>
+      <button
+        onClick={() => setPage(totalPages)}
+        disabled={page === totalPages}
+        className={
+          "rounded-lg p-2 text-lg transition font-bold border shadow-sm focus:outline-none focus:ring-2 " +
+          (dark
+            ? "bg-slate-950 text-cyan-400 border-cyan-800 hover:bg-cyan-900/70"
+            : "bg-white text-cyan-700 border-sky-200 hover:bg-blue-100/80") +
+          (page === totalPages ? " opacity-60 cursor-not-allowed" : "")
+        }
+        aria-label="Halaman Terakhir"
+      >
+        <FaAngleDoubleRight />
+      </button>
+      <style jsx="true">{`
+        .pagination-shadow-dark {
+          box-shadow: 0 2px 8px 0 rgba(6, 182, 212, 0.08);
+        }
+        .pagination-shadow-light {
+          box-shadow: 0 2px 8px 0 rgba(56, 189, 248, 0.08);
+        }
+      `}</style>
     </div>
   );
 }
@@ -301,7 +366,7 @@ export default function Inventory() {
 
   // Pagination states
   const [page, setPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 2;
 
   // Fetch Data
   const fetchInventory = async () => {
