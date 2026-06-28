@@ -50,26 +50,34 @@ export default function Analytics() {
       .then(res => setTotalUsers(Array.isArray(res.data) ? res.data.length : 0))
       .catch(() => setTotalUsers(0));
 
-    api.get("/inventory")
-      .then(res => {
-        const inventory = Array.isArray(res.data) ? res.data : [];
-        setTotalProducts(inventory.length);
+      api.get("/inventory")
+      .then((res) => {
+        const inventory = Array.isArray(res.data.data)
+          ? res.data.data
+          : [];
+    
+        setTotalProducts(res.data.total || inventory.length);
+    
         const counts = {};
-        inventory.forEach(item => {
-          const cat = (typeof item.category === "string" && item.category.trim()) ? item.category.trim() : "Uncategorized";
-          counts[cat] = (counts[cat] || 0) + 1;
+    
+        inventory.forEach((item) => {
+          const category =
+            item.category?.trim() || "Uncategorized";
+    
+          counts[category] = (counts[category] || 0) + 1;
         });
-        const categoryArray = Object.keys(counts);
-        setCategories(categoryArray);
-        const chartData = categoryArray.map(cat => ({
-          name: cat,
-          value: counts[cat]
-        }));
+    
+        const chartData = Object.entries(counts).map(
+          ([name, value]) => ({
+            name,
+            value,
+          })
+        );
+    
         setCategoryCounts(chartData);
       })
       .catch(() => {
         setTotalProducts(0);
-        setCategories([]);
         setCategoryCounts([]);
       });
 
