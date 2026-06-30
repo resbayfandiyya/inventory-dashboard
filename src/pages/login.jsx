@@ -91,6 +91,31 @@ export default function Login() {
           </p>
         </div>
 
+        {/* Demo Credentials Box */}
+        <div className="mb-8">
+          <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 shadow flex flex-col items-start">
+            <div className="font-semibold text-blue-800 mb-2 text-sm tracking-wide">
+              Demo Credentials
+            </div>
+            <div className="text-sm text-blue-900">
+              <div className="flex items-center gap-1">
+                <span className="w-16 inline-block font-medium text-blue-700">Email:</span>
+                <span className="font-mono select-all">admin@gmail.com</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="w-16 inline-block font-medium text-blue-700">Password:</span>
+                <span className="font-mono select-all">123456</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 mt-2 text-green-700 text-xs">
+              <svg className="inline w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 6.293a1 1 0 01.083 1.32l-.083.094-7.003 7.004a1 1 0 01-1.32.083l-.094-.083-3.003-3.003a1 1 0 011.32-1.497l.094.083 2.296 2.297 6.296-6.297a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+              <span>Feel free to explore the application.</span>
+            </div>
+          </div>
+        </div>
+
         <div className="mb-5">
           <label className="block mb-2 font-medium text-blue-900">
             Email
